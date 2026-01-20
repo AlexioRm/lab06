@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui;background:#f5f5f5}.app{max-width:600px;margin:0 auto;padding:20px}.form{background:#f8f9fa;padding:20px;border-radius:8px;margin-bottom:20px}.form input{width:100%;padding:10px;border:1px solid #ddd;border-radius:4px;margin-bottom:10px}.form button{background:#007bff;color:white;border:none;padding:12px;border-radius:4px;cursor:pointer;width:100%}.contact{border:1px solid #ddd;padding:12px;margin:8px 0;border-radius:8px;cursor:pointer}.contact:hover{background:#f0f8ff}.loading{text-align:center;padding:40px;color:#666}</style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    // 🎯 8 CONTACTOS FIJOS (NO API)
+    const FAKE_CONTACTS = [
+      {id:1,fullname:"Ana García",phonenumber:"+51 987654321",email:"ana@email.com"},
+      {id:2,fullname:"Luis Torres",phonenumber:"+51 912345678"},
+      {id:3,fullname:"María López",phonenumber:"+51 923456789",email:"maria@email.com"},
+      {id:4,fullname:"Carlos Ruiz",phonenumber:"+51 934567890"},
+      {id:5,fullname:"Sofía Pérez",phonenumber:"+51 945678901",email:"sofia@email.com"},
+      {id:6,fullname:"Diego Morales",phonenumber:"+51 956789012"},
+      {id:7,fullname:"Lucía Vargas",phonenumber:"+51 967890123",email:"lucia@email.com"},
+      {id:8,fullname:"Javier Castro",phonenumber:"+51 978901234"}
+    ];
+
+    function ContactForm({onCreated,editingContact,setEditingContact}){
+      const [formData,setFormData]=React.useState({fullname:'',phonenumber:'',email:''});
+      
+      React.useEffect(()=>{if(editingContact)setFormData(editingContact);else setFormData({fullname:'',phonenumber:'',email:''});},[editingContact]);
+
+      function handleChange(e){setFormData({...formData,[e.target.name]:e.target.value});}
+      
+      function handleSubmit(e){
+        e.preventDefault();
+        if(editingContact){
+          onCreated(editingContact.id,formData);
+          setEditingContact(null);
+        } else {
+          onCreated(null,formData);
+        }
+      }
+
+      return (
+        <div className="form">
+          <h3>{editingContact?"✏️ Editar":"➕ Nuevo"} Contacto</h3>
+          <form onSubmit={handleSubmit}>
+            <input name="fullname" value={formData.fullname} onChange={handleChange} placeholder="Nombre *" required/>
+            <input name="phonenumber" value={formData.phonenumber} onChange={handleChange} placeholder="Teléfono" required/>
+            <input name="email" value={formData.email} onChange={handleChange} placeholder="Email"/>
+            <button>{editingContact?"💾 Actualizar":"💾 Crear"}</button>
+          </form>
+          {editingContact && <button onClick={()=>setEditingContact(null)} style={{background:"#6c757d",marginTop:"10px"}}>❌ Cancelar</button>}
+        </div>
+      );
+    }
+
+    function App(){
+      const [contacts,setContacts]=React.useState(FAKE_CONTACTS);
+      const [loading,setLoading]=React.useState(true);
+      const [editingContact,setEditingContact]=React.useState(null);
+
+      React.useEffect(()=>{
+        setTimeout(()=>setLoading(false),1500); // Fake loading
+      },[]);
+
+      const handleCreated=(id,data)=>{
+        if(id){
+          setContacts(contacts.map(c=>c.id===id?{...c,...data}:c));
+        } else {
+          setContacts([{id:contacts.length+1,...data},...contacts]);
+        }
+      };
+
+      if(loading) return <div className="loading">⏳ Cargando contactos... (1.5s)</div>;
+
+      return (
+        <div className="app">
+          <h1>📇 Contact Manager - Lab 07 CRUD</h1>
+          <ContactForm onCreated={handleCreated} editingContact={editingContact} setEditingContact={setEditingContact}/>
+          <p>{contacts.length} contactos</p>
+          {contacts.map(c=>(
+            <div key={c.id} className="contact" onClick={()=>setEditingContact(c)}>
+              👤 {c.fullname} 📞 {c.phonenumber} {c.email && `✉️ ${c.email}`}
+            </div>
+          ))}
+        </div>
+      );
+    }
+    
+    ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+  </script>
+</body>
+</html>
